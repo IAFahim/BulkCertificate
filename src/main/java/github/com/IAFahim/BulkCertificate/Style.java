@@ -12,7 +12,7 @@ public class Style {
     public String font = "Arial";
     public int fontStyle;
     public int fontSize = 11;
-    public Color fontColor;
+    public String fontColor;
     public double fontOpacity = 1;
 
     public Dimension picture;
@@ -27,11 +27,18 @@ public class Style {
             case "font" -> this.font = val;
             case "font style" -> this.fontStyle = setFontStyle(val);
             case "font size" -> this.fontSize = setFontSize(val);
-            case "font color" -> this.fontColor = Color.decode(val);
+            case "font color" -> this.fontColor = setFontColor(val);
             case "font opacity" -> this.fontOpacity = setFontOpacity(val);
         }
     }
 
+    public static String getTitle(){
+        return "Data,x,y,ax,ay,font,font style,font size,font color,font opacity\n";
+    }
+
+    public  String toString(){
+        return x+","+y+","+ax+","+ay+","+font+","+fontStyle+","+fontSize+","+fontColor+","+fontOpacity+"\n";
+    }
 
     private int setPosition(String val) {
         double x = Double.parseDouble(val);
@@ -64,11 +71,11 @@ public class Style {
         return font;
     }
 
-    private Color setFontColor(String val) {
+    private String setFontColor(String val) {
         if (val.charAt(0) != '#') {
-            return Color.decode("#" + val);
+            return "#" + val;
         }
-        return Color.decode(val);
+        return val;
     }
 
     private int setFontOpacity(String val) {

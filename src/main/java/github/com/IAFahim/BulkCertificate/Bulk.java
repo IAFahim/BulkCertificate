@@ -12,19 +12,14 @@ public class Bulk {
 
     public static void main(String[] args) {
         Bulk bulk = new Bulk();
-        bulk.readStyle("src/test/resources/Certificate List - Format.csv");
+        var map = bulk.readStyle("src/test/resources/Certificate List - Format.csv");
+        bulk.repairCSVForReadData(map, "src/test/resources/Certificate List - final.csv");
     }
 
-    static class Pair {
-        public String head;
-        public String store;
-
-        public Pair(String head, String store) {
-            this.head = head;
-            this.store = store;
-        }
+    class Tuple {
+        String key;
+        String pairedWith;
     }
-
 
     public LinkedHashMap<String, Style> readStyle(String styleCSVPath) {
         Iterable<CSVRecord> csv_style = cSVReadAll(styleCSVPath);
@@ -38,35 +33,32 @@ public class Bulk {
         }
         if (fileOutputStream != null) {
             try (DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(fileOutputStream))) {
-                String[] arr = null;
                 int y = -1;
                 for (var d : csv_style) {
                     if (y == -1) {
-                        arr = new String[d.size()];
                         for (int i = 0; i < d.size(); i++) {
-                            String str=d.get(i);
+                            String str = d.get(i);
                             head.add(new Pair(str, null));
-                            arr[i]=str;
                         }
+                        dataOutputStream.writeBytes(Style.getTitle());
                     } else {
                         String key = d.get(0);
-                        arr[0] = key;
                         Style style = new Style();
                         for (int i = 1; i < d.size(); i++) {
                             String val = d.get(i);
                             if (val.length() > 0) {
                                 style.set(head.get(i).head, val);
                                 head.get(i).store = val;
-                                arr[i] = val;
                             } else {
                                 Pair pair = head.get(i);
                                 style.set(pair.head, pair.store);
-                                arr[i]=pair.store;
+                                head.get(i).store = pair.store;
                             }
                         }
+                        dataOutputStream.writeBytes(key+","+style.toString());
                         data.put(key, style);
                     }
-                    cSVPrintArray(dataOutputStream,arr);
+
                     y++;
                 }
             } catch (IOException e) {
@@ -76,31 +68,26 @@ public class Bulk {
         return data;
     }
 
-    public void cSVPrintArray(DataOutputStream dataOutputStream, String[] arr) {
-        int n = arr.length;
+    public void cSVPrintArray(DataOutputStream dataOutputStream, CSVRecord rec) {
+        int n = rec.size();
         for (int i = 0; i < n; i++) {
             try {
-                dataOutputStream.writeBytes(arr[i] + ((i + 1 != n) ? "," : "\n"));
+                dataOutputStream.writeBytes(rec.get(i) + ((i + 1 != n) ? "," : "\n"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void repairCSVForReadData(LinkedHashSet<String> set, String dataCSVPath) {
+    public void repairCSVForReadData(LinkedHashMap<String, Style> set, String dataCSVPath) {
         Iterable<CSVRecord> csv_data = cSVReadAll(dataCSVPath);
-        int[] arr = null, loop = null, capitalize = null;
         int y = 0;
         for (var d : csv_data) {
             if (y == 0) {
-                arr = new int[d.size()];
-                capitalize = new int[d.size()];
-                loop = new int[set.size()];
                 for (int i = 0, j = 0; i < d.size(); i++) {
                     String str = formatOrStrip(d.get(i));
-                    if (set.contains(str)) {
-                        loop[j++] = i;
-                        arr[i] = 1;
+                    if (set.get(str) != null) {
+
                     }
                 }
             }
