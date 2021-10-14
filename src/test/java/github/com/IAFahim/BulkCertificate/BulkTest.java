@@ -8,6 +8,7 @@ class BulkTest {
     @Test
     void read_CSV_Make_Image_Create_CSV() {
         Bulk bulk=new Bulk();
-        bulk.repairedCSVForReadData(null,"C:\\Users\\Fahim\\IdeaProjects\\BulkCertificateACM\\src\\test\\resources\\Certificate List - final.csv");
+        bulk.readStyle("src/test/resources/Certificate List - Format.csv");
+//        bulk.repairCSVForReadData(null,"src/test/resources/Certificate List - final.csv");
     }
 }
