@@ -3,23 +3,18 @@ package github.com.IAFahim.BulkCertificate;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
-import java.awt.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Predicate;
 
 public class Bulk {
 
     public static void main(String[] args) {
-        Bulk bulk = new Bulk();
+        Bulk bulk = new Bulk(true);
         var map = bulk.readStyle("src/test/resources/Certificate List - Format.csv");
         bulk.repairCSVForReadData(map, "src/test/resources/Certificate List - final.csv");
     }
 
-    class Tuple {
-        String key;
-        String pairedWith;
-    }
 
     public LinkedHashMap<String, Style> readStyle(String styleCSVPath) {
         Iterable<CSVRecord> csv_style = cSVReadAll(styleCSVPath);
@@ -27,7 +22,7 @@ public class Bulk {
         LinkedHashMap<String, Style> data = new LinkedHashMap<>();
         FileOutputStream fileOutputStream = null;
         try {
-            fileOutputStream = new FileOutputStream("StyleNew.csv");
+            fileOutputStream = new FileOutputStream(pathToPopulate + "StyleNew.csv");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -55,7 +50,7 @@ public class Bulk {
                                 head.get(i).store = pair.store;
                             }
                         }
-                        dataOutputStream.writeBytes(key+","+style.toString());
+                        dataOutputStream.writeBytes(key + "," + style.toString());
                         data.put(key, style);
                     }
 
@@ -66,6 +61,54 @@ public class Bulk {
             }
         }
         return data;
+    }
+
+    class StyleIndexAt {
+        public Style style;
+        public int index;
+        public int at;
+
+        public StyleIndexAt(Style style, int index, int at) {
+            this.style = style;
+            this.index = index;
+            this.at = at;
+        }
+    }
+
+    class IDIndexAtMap{
+        public int index;
+        public int at;
+        public HashMap<String, Integer> map;
+
+        public IDIndexAtMap(int index, int at) {
+            this.index = index;
+            this.at = at;
+            map=new HashMap<>();
+        }
+    }
+
+    public void repairCSVForReadData(LinkedHashMap<String, Style> map, String dataCSVPath) {
+        Iterable<CSVRecord> csv_data = cSVReadAll(dataCSVPath);
+        int y = -1;
+        ArrayList<StyleIndexAt> styles = null;
+        ArrayList<IDIndexAtMap> ids = null;
+        for (var d : csv_data) {
+            if (y == 0) {
+                styles = new ArrayList<>();
+                for (int i = 0; i < d.size(); i++) {
+                    String str = d.get(i);
+                    if (str.length() > 0) {
+                        if(str.charAt(0)=='*'){
+                            ids.add(new IDIndexAtMap(i,1));
+                        }
+                        Style style = map.get(str);
+                        styles.add(new StyleIndexAt(style, i, 1));
+                    }
+                }
+            }
+
+            y++;
+        }
     }
 
     public void cSVPrintArray(DataOutputStream dataOutputStream, CSVRecord rec) {
@@ -79,47 +122,24 @@ public class Bulk {
         }
     }
 
-    public void repairCSVForReadData(LinkedHashMap<String, Style> set, String dataCSVPath) {
-        Iterable<CSVRecord> csv_data = cSVReadAll(dataCSVPath);
-        int y = 0;
-        for (var d : csv_data) {
-            if (y == 0) {
-                for (int i = 0, j = 0; i < d.size(); i++) {
-                    String str = formatOrStrip(d.get(i));
-                    if (set.get(str) != null) {
+    public String currentPath;
+    public String currentFolder;
+    public String pathToPopulate;
 
-                    }
-                }
-            }
-            for (int x = 0; x < d.size(); x++) {
-                System.out.println(d.get(x));
-            }
-            y++;
+    public Bulk(Boolean testMode) {
+        currentPath = System.getProperty("user.dir");
+        if (testMode){
+            currentFolder = "Test";
+        } else {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
+            currentFolder = dateFormat.format(new Date());
         }
-    }
-
-    private HashMap<String, Style> stylesSupported;
-
-    private boolean[] specialChar;
-
-    private void specialCharacter() {
-        specialChar = new boolean[128];
-        specialChar['^'] = true;
-        specialChar['*'] = true;
-        specialChar['?'] = true;
-    }
-
-    private String formatOrStrip(String str) {
-        if (str.length() > 0) {
-            if (specialChar[str.charAt(0)]) {
-                return str.substring(1).toUpperCase();
-            }
+        pathToPopulate = currentPath + "/" + currentFolder + "/";
+        System.out.println(pathToPopulate);
+        File file = new File(pathToPopulate);
+        if (!file.mkdir()) {
+            System.err.println("crush- not the good kind");
         }
-        return str;
-    }
-
-    Bulk() {
-        specialCharacter();
     }
 
     private Iterable<CSVRecord> cSVReadAll(String dataCSVPath) {
