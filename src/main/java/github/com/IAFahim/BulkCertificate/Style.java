@@ -11,8 +11,8 @@ public class Style {
     public double ay = .5;
     public String font = "Arial";
     public int fontStyle;
-    public int fontSize = 11;
-    public String fontColor;
+    public int fontSize = 16;
+    public Color fontColor=Color.BLACK;
     public double fontOpacity = 1;
 
     public Dimension picture;
@@ -37,7 +37,7 @@ public class Style {
     }
 
     public  String toString(){
-        return x+","+y+","+ax+","+ay+","+font+","+fontStyle+","+fontSize+","+fontColor+","+fontOpacity+"\n";
+        return x+","+y+","+ax+","+ay+","+font+","+fontStyle+","+fontSize+","+Integer.toHexString(fontColor.getRGB())+","+fontOpacity+"\n";
     }
 
     private int setPosition(String val) {
@@ -71,15 +71,16 @@ public class Style {
         return font;
     }
 
-    private String setFontColor(String val) {
+    private Color setFontColor(String val) {
         if (val.charAt(0) != '#') {
-            return "#" + val;
+            return Color.decode("#" + val);
         }
-        return val;
+        return Color.decode(val);
     }
 
     private int setFontOpacity(String val) {
         double x = Double.parseDouble(val);
+        fontColor = new Color((int)(x*0xff), fontColor.getRed(),fontColor.getGreen(), fontColor.getBlue());
         return (int) x;
     }
 

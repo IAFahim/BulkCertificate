@@ -3,16 +3,15 @@ package github.com.IAFahim.BulkCertificate;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Bulk {
+public class Bulk implements Runnable {
 
     public static void main(String[] args) {
-        Bulk bulk = new Bulk(true);
-        var map = bulk.readStyle("src/test/resources/Certificate List - Format.csv");
-        bulk.repairCSVForReadData(map, "src/test/resources/Certificate List - final.csv");
+        new Bulk(true).run();
     }
 
 
@@ -63,50 +62,41 @@ public class Bulk {
         return data;
     }
 
-    class StyleIndexAt {
-        public Style style;
-        public int index;
-        public int at;
+    @Override
+    public void run() {
 
-        public StyleIndexAt(Style style, int index, int at) {
-            this.style = style;
-            this.index = index;
-            this.at = at;
-        }
     }
 
-    class IDIndexAtMap{
-        public int index;
-        public int at;
-        public HashMap<String, Integer> map;
-
-        public IDIndexAtMap(int index, int at) {
-            this.index = index;
-            this.at = at;
-            map=new HashMap<>();
-        }
-    }
 
     public void repairCSVForReadData(LinkedHashMap<String, Style> map, String dataCSVPath) {
         Iterable<CSVRecord> csv_data = cSVReadAll(dataCSVPath);
         int y = -1;
         ArrayList<StyleIndexAt> styles = null;
         ArrayList<IDIndexAtMap> ids = null;
+        String[] arr=null;
         for (var d : csv_data) {
-            if (y == 0) {
+            if (y == -1) {
                 styles = new ArrayList<>();
+                ids=new ArrayList<>();
                 for (int i = 0; i < d.size(); i++) {
                     String str = d.get(i);
                     if (str.length() > 0) {
                         if(str.charAt(0)=='*'){
+                            str=str.substring(1);
                             ids.add(new IDIndexAtMap(i,1));
                         }
                         Style style = map.get(str);
                         styles.add(new StyleIndexAt(style, i, 1));
                     }
                 }
+            }else{
+                arr=new String[styles.size()+ ids.size()];
+                for (int i = 0; i < styles.size(); i++) {
+                    int index=styles.get(i).index;
+                    arr[index]=d.get(index);
+                    System.out.println(styles.get(i).style.toString()+" "+arr[index]);
+                }
             }
-
             y++;
         }
     }
@@ -125,6 +115,7 @@ public class Bulk {
     public String currentPath;
     public String currentFolder;
     public String pathToPopulate;
+    public BufferedImage bufferedImage;
 
     public Bulk(Boolean testMode) {
         currentPath = System.getProperty("user.dir");
@@ -138,7 +129,7 @@ public class Bulk {
         System.out.println(pathToPopulate);
         File file = new File(pathToPopulate);
         if (!file.mkdir()) {
-            System.err.println("crush- not the good kind");
+            System.err.println("folder exists");
         }
     }
 
