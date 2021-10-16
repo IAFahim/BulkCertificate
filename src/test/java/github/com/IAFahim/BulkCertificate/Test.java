@@ -46,6 +46,8 @@ public class Test {
         Rectangle2D bounds= textLayout.getBounds();
         canvas.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
         canvas.drawString(text,(int) (style.x - (bounds.getBounds().getWidth()* style.ax)), (int) (style.y + (bounds.getHeight()* style.ay)));
+        canvas.setColor(Color.BLUE);
+
         canvas.dispose();
         return bufferedImage;
     }

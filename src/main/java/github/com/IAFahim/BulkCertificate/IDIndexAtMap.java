@@ -3,13 +3,11 @@ package github.com.IAFahim.BulkCertificate;
 import java.util.HashMap;
 
 public class IDIndexAtMap {
-    public int index;
-    public int at;
+    StyleIndexAt styleIndexAt;
     public HashMap<String, Integer> map;
 
-    public IDIndexAtMap(int index, int at) {
-        this.index = index;
-        this.at = at;
+    public IDIndexAtMap(StyleIndexAt styleIndexAt) {
+        this.styleIndexAt=styleIndexAt;
         map=new HashMap<>();
     }
 }

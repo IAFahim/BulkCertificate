@@ -8,10 +8,10 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Bulk implements Runnable {
+public class Bulk {
 
     public static void main(String[] args) {
-        new Bulk(true).run();
+
     }
 
 
@@ -52,7 +52,6 @@ public class Bulk implements Runnable {
                         dataOutputStream.writeBytes(key + "," + style.toString());
                         data.put(key, style);
                     }
-
                     y++;
                 }
             } catch (IOException e) {
@@ -62,46 +61,96 @@ public class Bulk implements Runnable {
         return data;
     }
 
-    @Override
-    public void run() {
-
-    }
-
-
     public void repairCSVForReadData(LinkedHashMap<String, Style> map, String dataCSVPath) {
         Iterable<CSVRecord> csv_data = cSVReadAll(dataCSVPath);
         int y = -1;
         ArrayList<StyleIndexAt> styles = null;
         ArrayList<IDIndexAtMap> ids = null;
-        String[] arr=null;
-        for (var d : csv_data) {
-            if (y == -1) {
-                styles = new ArrayList<>();
-                ids=new ArrayList<>();
-                for (int i = 0; i < d.size(); i++) {
-                    String str = d.get(i);
-                    if (str.length() > 0) {
-                        if(str.charAt(0)=='*'){
-                            str=str.substring(1);
-                            ids.add(new IDIndexAtMap(i,1));
+        String[] store = null;
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(pathToPopulate + "Data.csv");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        if(fileOutputStream!=null){
+            try (DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(fileOutputStream))) {
+                for (var d : csv_data) {
+                    if (y == -1) {
+                        styles = new ArrayList<>();
+                        ids = new ArrayList<>();
+                        store = new String[d.size()];
+                        for (int i = 0; i < d.size(); i++) {
+                            String str = d.get(i);
+                            if (str.length() > 0) {
+                                if (str.charAt(0) == '*') {
+                                    str = str.substring(1);
+                                    Style style = map.get(str);
+                                    if (style == null) continue;
+                                    ids.add(new IDIndexAtMap(new StyleIndexAt(style, i)));
+                                } else {
+                                    Style style = map.get(str);
+                                    if (style == null) continue;
+                                    styles.add(new StyleIndexAt(style, i));
+                                }
+                                store[i] = str;
+                            }
                         }
-                        Style style = map.get(str);
-                        styles.add(new StyleIndexAt(style, i, 1));
+                        cSVPrintArray(dataOutputStream,store);
+                    } else {
+                        String[] print=new String[store.length];
+                        for (int i = 0; i < styles.size(); i++) {
+                            int x = styles.get(i).x;
+                            String str = d.get(x);
+                            if (str.length() > 0) {
+                                store[x] = str;
+                            } else {
+                                str = store[x];
+                            }
+                            print[x]=str;
+                        }
+                        for (int i = 0; i < ids.size(); i++) {
+                            int x = ids.get(i).styleIndexAt.x;
+                            String str = d.get(x);
+                            if (str.length() == 0) {
+                                str = store[x];
+                            } else {
+                                store[x] = str;
+                            }
+                            Integer count = ids.get(i).map.get(str);
+                            if (count != null) {
+                                str = String.format(str, ++count);
+                            } else {
+                                int startVal = 1;
+                                ids.get(i).map.put(str, startVal);
+                                str = String.format(str, startVal);
+                            }
+                            print[x]=str;
+                        }
+                        cSVPrintArray(dataOutputStream,print);
                     }
+                    y++;
                 }
-            }else{
-                arr=new String[styles.size()+ ids.size()];
-                for (int i = 0; i < styles.size(); i++) {
-                    int index=styles.get(i).index;
-                    arr[index]=d.get(index);
-                    System.out.println(styles.get(i).style.toString()+" "+arr[index]);
-                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            y++;
+
         }
     }
 
-    public void cSVPrintArray(DataOutputStream dataOutputStream, CSVRecord rec) {
+    private void cSVPrintArray(DataOutputStream dataOutputStream, String[] strings) {
+        int n = strings.length;
+        for (int i = 0; i < n; i++) {
+            try {
+                dataOutputStream.writeBytes(strings[i] + ((i + 1 != n) ? "," : "\n"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void cSVPrintArray(DataOutputStream dataOutputStream, CSVRecord rec) {
         int n = rec.size();
         for (int i = 0; i < n; i++) {
             try {
@@ -119,7 +168,7 @@ public class Bulk implements Runnable {
 
     public Bulk(Boolean testMode) {
         currentPath = System.getProperty("user.dir");
-        if (testMode){
+        if (testMode) {
             currentFolder = "Test";
         } else {
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
