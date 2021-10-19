@@ -10,13 +10,13 @@ import java.io.IOException;
 
 public class Test {
     public static void main(String[] args) {
-        System.out.println(WriteImage(addTextToImage(createImage()),"png","Test/img.png"));
+
     }
 
     private static File WriteImage(BufferedImage bufferedImage, String path, String type){
         File file=null;
         try {
-            ImageIO.write(bufferedImage,"png",file= new File("Test/img.png"));
+            ImageIO.write(bufferedImage,type,file= new File(path+"/img.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -33,22 +33,25 @@ public class Test {
         return bufferedImage;
     }
 
-    public static BufferedImage addTextToImage(BufferedImage bufferedImage){
-        Style style=new Style();
-        style.x=500;
-        style.y=500;
-        style.fontSize=100;
-        Graphics2D canvas = (Graphics2D) bufferedImage.getGraphics();
-        canvas.setFont(new Font(style.font,style.fontStyle,style.fontSize));
-        canvas.setColor(style.fontColor);
-        String text="Bulk Certificate";
-        TextLayout textLayout=new TextLayout(text,canvas.getFont(),canvas.getFontRenderContext());
+    public BufferedImage bufferedImage;
+    public Graphics2D canvas;
+    public Print print;
+    public void create(){
+        canvas = (Graphics2D) bufferedImage.getGraphics();
+        for (int i = 0; i < print.string.length; i++) {
+            addTextToImage(i,print);
+        }
+        canvas.dispose();
+        WriteImage(bufferedImage,"/sda","png");
+    }
+
+    public void addTextToImage(int i,Print print){
+        canvas.setFont(new Font(print.style[i].font,print.style[i].fontStyle,print.style[i].fontSize));
+        canvas.setColor(print.style[i].fontColor);
+        TextLayout textLayout=new TextLayout(print.string[i],canvas.getFont(),canvas.getFontRenderContext());
         Rectangle2D bounds= textLayout.getBounds();
         canvas.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-        canvas.drawString(text,(int) (style.x - (bounds.getBounds().getWidth()* style.ax)), (int) (style.y + (bounds.getHeight()* style.ay)));
+        canvas.drawString(print.string[i],(int) (print.style[i].x - (bounds.getBounds().getWidth()* print.style[i].ax)), (int) (print.style[i].y + (bounds.getHeight()* print.style[i].ay)));
         canvas.setColor(Color.BLUE);
-
-        canvas.dispose();
-        return bufferedImage;
     }
 }

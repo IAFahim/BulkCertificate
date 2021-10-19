@@ -99,7 +99,9 @@ public class Bulk {
                         }
                         cSVPrintArray(dataOutputStream,store);
                     } else {
-                        String[] print=new String[store.length];
+                        Print print=new Print();
+                        print.string= new String[store.length];
+                        print.style= new Style[store.length];
                         for (int i = 0; i < styles.size(); i++) {
                             int x = styles.get(i).x;
                             String str = d.get(x);
@@ -108,7 +110,7 @@ public class Bulk {
                             } else {
                                 str = store[x];
                             }
-                            print[x]=str;
+                            print.string[x]=str;
                         }
                         for (int i = 0; i < ids.size(); i++) {
                             int x = ids.get(i).styleIndexAt.x;
@@ -126,9 +128,9 @@ public class Bulk {
                                 ids.get(i).map.put(str, startVal);
                                 str = String.format(str, startVal);
                             }
-                            print[x]=str;
+                            print.string[x]=str;
                         }
-                        cSVPrintArray(dataOutputStream,print);
+                        cSVPrintArray(dataOutputStream,print.string);
                     }
                     y++;
                 }
