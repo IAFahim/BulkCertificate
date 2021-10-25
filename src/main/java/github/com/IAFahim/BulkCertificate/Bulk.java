@@ -3,12 +3,45 @@ package github.com.IAFahim.BulkCertificate;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Bulk {
+
+    public String currentPath;
+    public String currentFolder;
+    public String folderToPopulate;
+    public BufferedImage bufferedImage;
+    public String imgType;
+
+    public Bulk(Boolean testMode, File file) throws IOException {
+        int index = file.getName().lastIndexOf('.');
+        if (index > 0) {
+            imgType = file.getName().substring(0, index);
+        } else {
+            imgType = "png";
+        }
+        bufferedImage = ImageIO.read(file);
+        currentPath = System.getProperty("user.dir");
+        if (testMode) {
+            currentFolder = "Test";
+        } else {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
+            currentFolder = dateFormat.format(new Date());
+        }
+        folderToPopulate = currentPath + "/" + currentFolder + "/";
+        System.out.println(folderToPopulate);
+        File folder = new File(folderToPopulate);
+        if (!folder.mkdir()) {
+            System.err.println("folder exists");
+        }
+    }
 
     public static void main(String[] args) {
 
@@ -21,7 +54,7 @@ public class Bulk {
         LinkedHashMap<String, Style> data = new LinkedHashMap<>();
         FileOutputStream fileOutputStream = null;
         try {
-            fileOutputStream = new FileOutputStream(pathToPopulate + "StyleNew.csv");
+            fileOutputStream = new FileOutputStream(folderToPopulate + "StyleNew.csv");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -69,13 +102,14 @@ public class Bulk {
         String[] store = null;
         FileOutputStream fileOutputStream = null;
         try {
-            fileOutputStream = new FileOutputStream(pathToPopulate + "Data.csv");
+            fileOutputStream = new FileOutputStream(folderToPopulate + "Data.csv");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        if(fileOutputStream!=null){
+        if (fileOutputStream != null) {
             try (DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(fileOutputStream))) {
+                ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
                 for (var d : csv_data) {
                     if (y == -1) {
                         styles = new ArrayList<>();
@@ -97,11 +131,11 @@ public class Bulk {
                                 store[i] = str;
                             }
                         }
-                        cSVPrintArray(dataOutputStream,store);
+                        cSVPrintArray(dataOutputStream, store);
                     } else {
-                        Print print=new Print();
-                        print.string= new String[store.length];
-                        print.style= new Style[store.length];
+                        PrintData printData = new PrintData();
+                        printData.string = new String[store.length];
+                        printData.style = new Style[store.length];
                         for (int i = 0; i < styles.size(); i++) {
                             int x = styles.get(i).x;
                             String str = d.get(x);
@@ -110,7 +144,7 @@ public class Bulk {
                             } else {
                                 str = store[x];
                             }
-                            print.string[x]=str;
+                            printData.string[x] = str;
                         }
                         for (int i = 0; i < ids.size(); i++) {
                             int x = ids.get(i).styleIndexAt.x;
@@ -128,9 +162,12 @@ public class Bulk {
                                 ids.get(i).map.put(str, startVal);
                                 str = String.format(str, startVal);
                             }
-                            print.string[x]=str;
+                            printData.string[x] = str;
+                            printData.fileName = printData.string[x];
+                            GenerateImage generateImage = new GenerateImage(bufferedImage, printData, imgType, folderToPopulate);
+                            service.execute(generateImage);
                         }
-                        cSVPrintArray(dataOutputStream,print.string);
+                        cSVPrintArray(dataOutputStream, printData.string);
                     }
                     y++;
                 }
@@ -163,26 +200,6 @@ public class Bulk {
         }
     }
 
-    public String currentPath;
-    public String currentFolder;
-    public String pathToPopulate;
-    public BufferedImage bufferedImage;
-
-    public Bulk(Boolean testMode) {
-        currentPath = System.getProperty("user.dir");
-        if (testMode) {
-            currentFolder = "Test";
-        } else {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
-            currentFolder = dateFormat.format(new Date());
-        }
-        pathToPopulate = currentPath + "/" + currentFolder + "/";
-        System.out.println(pathToPopulate);
-        File file = new File(pathToPopulate);
-        if (!file.mkdir()) {
-            System.err.println("folder exists");
-        }
-    }
 
     private Iterable<CSVRecord> cSVReadAll(String dataCSVPath) {
         Reader reader = null;
@@ -199,13 +216,13 @@ public class Bulk {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        try {
-//            if (reader != null) {
-//                reader.close();
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return csv_data;
     }
 }
