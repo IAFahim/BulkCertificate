@@ -46,7 +46,7 @@ public class GenerateImage implements Runnable{
     }
 
     private void addTextToImage(int i, PrintData print){
-        canvas.setFont(new Font(print.style[i].font,print.style[i].fontStyle,print.style[i].fontSize));
+        canvas.setFont(new Font(print.style[i].font,print.style[i].fontStyleNumber,print.style[i].fontSize));
         canvas.setColor(print.style[i].fontColor);
         TextLayout textLayout=new TextLayout(print.string[i],canvas.getFont(),canvas.getFontRenderContext());
         Rectangle2D bounds= textLayout.getBounds();

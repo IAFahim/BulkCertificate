@@ -35,7 +35,7 @@ public class Bulk {
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
             currentFolder = dateFormat.format(new Date());
         }
-        folderToPopulate = currentPath + "/" + currentFolder + "/";
+        folderToPopulate = currentPath + "\\" + currentFolder + "\\";
         System.out.println(folderToPopulate);
         File folder = new File(folderToPopulate);
         if (!folder.mkdir()) {
@@ -212,13 +212,6 @@ public class Bulk {
         try {
             if (reader != null) {
                 csv_data = CSVFormat.EXCEL.parse(reader);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (reader != null) {
-                reader.close();
             }
         } catch (IOException e) {
             e.printStackTrace();

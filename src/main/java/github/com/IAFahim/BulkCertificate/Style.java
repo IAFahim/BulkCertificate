@@ -1,7 +1,6 @@
 package github.com.IAFahim.BulkCertificate;
 
 import java.awt.*;
-import java.util.Locale;
 
 public class Style {
 
@@ -10,7 +9,8 @@ public class Style {
     public double ax = .5;
     public double ay = .5;
     public String font = "Arial";
-    public int fontStyle;
+    public int fontStyleNumber;
+    public String fontStyle;
     public int fontSize = 16;
     public Color fontColor=Color.BLACK;
     public double fontOpacity = 1;
@@ -25,7 +25,11 @@ public class Style {
             case "ax" -> this.ax = Double.parseDouble(val);
             case "ay" -> this.ay = Double.parseDouble(val);
             case "font" -> this.font = val;
-            case "font style" -> this.fontStyle = setFontStyle(val);
+            case "font style" -> {
+                this.fontStyleNumber = setFontStyle(val);
+                fontStyle=val;
+            }
+
             case "font size" -> this.fontSize = setFontSize(val);
             case "font color" -> this.fontColor = setFontColor(val);
             case "font opacity" -> this.fontOpacity = setFontOpacity(val);
@@ -37,7 +41,7 @@ public class Style {
     }
 
     public  String toString(){
-        return x+","+y+","+ax+","+ay+","+font+","+fontStyle+","+fontSize+","+Integer.toHexString(fontColor.getRGB())+","+fontOpacity+"\n";
+        return x+","+y+","+ax+","+ay+","+font+","+ fontStyle +","+fontSize+","+Integer.toHexString(fontColor.getRGB())+","+fontOpacity+"\n";
     }
 
     private int setPosition(String val) {
