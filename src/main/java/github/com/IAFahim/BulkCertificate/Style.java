@@ -10,9 +10,9 @@ public class Style {
     public double ay = .5;
     public String font = "Arial";
     public int fontStyleNumber;
-    public String fontStyle;
+    public String fontStyle = "Regular";
     public int fontSize = 16;
-    public Color fontColor=Color.BLACK;
+    public Color fontColor = Color.BLACK;
     public double fontOpacity = 1;
 
     public Dimension picture;
@@ -27,7 +27,7 @@ public class Style {
             case "font" -> this.font = val;
             case "font style" -> {
                 this.fontStyleNumber = setFontStyle(val);
-                fontStyle=val;
+                fontStyle = val;
             }
 
             case "font size" -> this.fontSize = setFontSize(val);
@@ -36,17 +36,17 @@ public class Style {
         }
     }
 
-    public static String getTitle(){
+    public static String getTitle() {
         return "Data,x,y,ax,ay,font,font style,font size,font color,font opacity\n";
     }
 
-    public  String toString(){
-        return x+","+y+","+ax+","+ay+","+font+","+ fontStyle +","+fontSize+","+Integer.toHexString(fontColor.getRGB())+","+fontOpacity+"\n";
+    public String toString() {
+        return x + "," + y + "," + ax + "," + ay + "," + font + "," + fontStyle + "," + fontSize + "," + Integer.toHexString(fontColor.getRGB()) + "," + fontOpacity + "\n";
     }
 
     private int setPosition(String val) {
         double x = Double.parseDouble(val);
-        if (x < 1 && 0 < 1 -x) {
+        if (x < 1 && 0 < 1 - x) {
             return (int) (picture.width * x);
         }
         return (int) x;
@@ -84,7 +84,7 @@ public class Style {
 
     private int setFontOpacity(String val) {
         double x = Double.parseDouble(val);
-        fontColor = new Color((int)(x*0xff), fontColor.getRed(),fontColor.getGreen(), fontColor.getBlue());
+        fontColor = new Color(fontColor.getRed(), fontColor.getGreen(), fontColor.getBlue(), (int) (x * 0xff));
         return (int) x;
     }
 

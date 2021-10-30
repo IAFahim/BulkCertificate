@@ -23,7 +23,7 @@ public class Bulk {
     public Bulk(Boolean testMode, File file) throws IOException {
         int index = file.getName().lastIndexOf('.');
         if (index > 0) {
-            imgType = file.getName().substring(0, index);
+            imgType = file.getName().substring(index + 1);
         } else {
             imgType = "png";
         }
@@ -42,11 +42,6 @@ public class Bulk {
             System.err.println("folder exists");
         }
     }
-
-    public static void main(String[] args) {
-
-    }
-
 
     public LinkedHashMap<String, Style> readStyle(String styleCSVPath) {
         Iterable<CSVRecord> csv_style = cSVReadAll(styleCSVPath);
@@ -115,67 +110,79 @@ public class Bulk {
                         styles = new ArrayList<>();
                         ids = new ArrayList<>();
                         store = new String[d.size()];
-                        for (int i = 0; i < d.size(); i++) {
-                            String str = d.get(i);
-                            if (str.length() > 0) {
-                                if (str.charAt(0) == '*') {
-                                    str = str.substring(1);
-                                    Style style = map.get(str);
-                                    if (style == null) continue;
-                                    ids.add(new IDIndexAtMap(new StyleIndexAt(style, i)));
-                                } else {
-                                    Style style = map.get(str);
-                                    if (style == null) continue;
-                                    styles.add(new StyleIndexAt(style, i));
-                                }
-                                store[i] = str;
-                            }
-                        }
-                        cSVPrintArray(dataOutputStream, store);
+                        readHead(map, d, styles, ids, store, dataOutputStream);
                     } else {
-                        PrintData printData = new PrintData();
-                        printData.string = new String[store.length];
-                        printData.style = new Style[store.length];
-                        for (int i = 0; i < styles.size(); i++) {
-                            int x = styles.get(i).x;
-                            String str = d.get(x);
-                            if (str.length() > 0) {
-                                store[x] = str;
-                            } else {
-                                str = store[x];
-                            }
-                            printData.string[x] = str;
-                        }
-                        for (int i = 0; i < ids.size(); i++) {
-                            int x = ids.get(i).styleIndexAt.x;
-                            String str = d.get(x);
-                            if (str.length() == 0) {
-                                str = store[x];
-                            } else {
-                                store[x] = str;
-                            }
-                            Integer count = ids.get(i).map.get(str);
-                            if (count != null) {
-                                str = String.format(str, ++count);
-                            } else {
-                                int startVal = 1;
-                                ids.get(i).map.put(str, startVal);
-                                str = String.format(str, startVal);
-                            }
-                            printData.string[x] = str;
-                            printData.fileName = printData.string[x];
-                            GenerateImage generateImage = new GenerateImage(bufferedImage, printData, imgType, folderToPopulate);
-                            service.execute(generateImage);
-                        }
-                        cSVPrintArray(dataOutputStream, printData.string);
+                        readDataWithHeadData(d, styles, ids, store, service, dataOutputStream);
+                        break;
                     }
                     y++;
                 }
+                service.shutdown();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
+
+    }
+
+    private void readHead(LinkedHashMap<String, Style> map, CSVRecord d, ArrayList<StyleIndexAt> styles, ArrayList<IDIndexAtMap> ids, String[] store, DataOutputStream dataOutputStream) {
+        for (int i = 0; i < d.size(); i++) {
+            String str = d.get(i);
+            if (str.length() > 0) {
+                if (str.charAt(0) == '*') {
+                    str = str.substring(1);
+                    Style style = map.get(str);
+                    if (style == null) continue;
+                    ids.add(new IDIndexAtMap(new StyleIndexAt(style, i)));
+                } else {
+                    Style style = map.get(str);
+                    if (style == null) continue;
+                    styles.add(new StyleIndexAt(style, i));
+                }
+                store[i] = str;
+            }
+        }
+        cSVPrintArray(dataOutputStream, store);
+    }
+
+    private void readDataWithHeadData(CSVRecord d, ArrayList<StyleIndexAt> styles, ArrayList<IDIndexAtMap> ids, String[] store, ExecutorService service, DataOutputStream dataOutputStream) {
+        PrintData printData = new PrintData();
+        printData.string = new String[store.length];
+        printData.style = new Style[store.length];
+        for (StyleIndexAt style : styles) {
+            int x = style.x;
+            String str = d.get(x);
+            if (str.length() > 0) {
+                store[x] = str;
+            } else {
+                str = store[x];
+            }
+            printData.string[x] = str;
+            printData.style[x] = style.style;
+        }
+        for (IDIndexAtMap id : ids) {
+            int x = id.styleIndexAt.x;
+            String str = d.get(x);
+            if (str.length() == 0) {
+                str = store[x];
+            } else {
+                store[x] = str;
+            }
+            Integer count = id.map.get(str);
+            if (count != null) {
+                str = String.format(str, ++count);
+            } else {
+                int startVal = 1;
+                id.map.put(str, startVal);
+                str = String.format(str, startVal);
+            }
+            printData.string[x] = str;
+            printData.fileName = printData.string[x];
+            printData.style[x] = id.styleIndexAt.style;
+        }
+        GenerateImage generateImage = new GenerateImage(bufferedImage, printData, imgType, folderToPopulate);
+        service.execute(generateImage);
+        cSVPrintArray(dataOutputStream, printData.string);
     }
 
     private void cSVPrintArray(DataOutputStream dataOutputStream, String[] strings) {
