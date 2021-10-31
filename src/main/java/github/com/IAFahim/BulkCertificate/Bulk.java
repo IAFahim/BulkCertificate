@@ -113,7 +113,6 @@ public class Bulk {
                         readHead(map, d, styles, ids, store, dataOutputStream);
                     } else {
                         readDataWithHeadData(d, styles, ids, store, service, dataOutputStream);
-                        break;
                     }
                     y++;
                 }
@@ -168,14 +167,14 @@ public class Bulk {
             } else {
                 store[x] = str;
             }
-            Integer count = id.map.get(str);
-            if (count != null) {
-                str = String.format(str, ++count);
+            Integer startVal = id.map.get(str);
+            if (startVal == null) {
+                id.map.put(str, startVal = 1);
             } else {
-                int startVal = 1;
-                id.map.put(str, startVal);
-                str = String.format(str, startVal);
+                id.map.put(str, ++startVal);
             }
+            str = String.format(str, startVal);
+
             printData.string[x] = str;
             printData.fileName = printData.string[x];
             printData.style[x] = id.styleIndexAt.style;

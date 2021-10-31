@@ -17,7 +17,7 @@ public class GenerateImage implements Runnable{
     private final String type;
 
     public GenerateImage(BufferedImage bufferedImage, PrintData printData, String type, String folderToPopulate){
-        this.bufferedImage=bufferedImage;
+        this.bufferedImage=copyImage(bufferedImage);
         this.printData =printData;
         this.type=type;
         this.folderToPopulate=folderToPopulate;
