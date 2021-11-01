@@ -17,7 +17,7 @@ public class GenerateImage implements Runnable{
     private final String type;
 
     public GenerateImage(BufferedImage bufferedImage, PrintData printData, String type, String folderToPopulate){
-        this.bufferedImage=copyImage(bufferedImage);
+        this.bufferedImage=bufferedImage;
         this.printData =printData;
         this.type=type;
         this.folderToPopulate=folderToPopulate;
@@ -51,7 +51,7 @@ public class GenerateImage implements Runnable{
         TextLayout textLayout=new TextLayout(print.string[i],canvas.getFont(),canvas.getFontRenderContext());
         Rectangle2D bounds= textLayout.getBounds();
         canvas.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-        canvas.drawString(print.string[i],(int) (print.style[i].x - (bounds.getBounds().getWidth()* print.style[i].ax)), (int) (print.style[i].y + (bounds.getHeight()* print.style[i].ay)));
+        canvas.drawString(print.string[i],(int) (print.style[i].x - (bounds.getBounds().getWidth()* print.style[i].ax)), (int) (print.style[i].y ));
         canvas.setColor(Color.BLUE);
     }
 
@@ -65,6 +65,7 @@ public class GenerateImage implements Runnable{
 
     @Override
     public void run() {
+        this.bufferedImage=copyImage(bufferedImage);
         canvas = (Graphics2D) bufferedImage.getGraphics();
         for (int i = 0; i < printData.string.length; i++) {
             addTextToImage(i, printData);

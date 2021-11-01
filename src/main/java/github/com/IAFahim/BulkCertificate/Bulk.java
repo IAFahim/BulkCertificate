@@ -4,11 +4,11 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,8 +19,9 @@ public class Bulk {
     public String folderToPopulate;
     public BufferedImage bufferedImage;
     public String imgType;
+    public DimensionDouble measuredDimension;
 
-    public Bulk(Boolean testMode, File file) throws IOException {
+    public Bulk(File file, String currentFolder, Dimension measuredDimension) throws IOException {
         int index = file.getName().lastIndexOf('.');
         if (index > 0) {
             imgType = file.getName().substring(index + 1);
@@ -28,14 +29,22 @@ public class Bulk {
             imgType = "png";
         }
         bufferedImage = ImageIO.read(file);
-        currentPath = System.getProperty("user.dir");
-        if (testMode) {
-            currentFolder = "Test";
-        } else {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
-            currentFolder = dateFormat.format(new Date());
+        this.measuredDimension=new DimensionDouble();
+        if(measuredDimension==null){
+            this.measuredDimension.widthMultiple=1;
+            this.measuredDimension.heightMultiple=1;
+        }else {
+            this.measuredDimension.widthMultiple= bufferedImage.getWidth()/((double)measuredDimension.width);
+            this.measuredDimension.heightMultiple= bufferedImage.getHeight()/((double)measuredDimension.height);
         }
-        folderToPopulate = currentPath + "\\" + currentFolder + "\\";
+        if (currentFolder == null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
+            this.currentFolder = dateFormat.format(new Date());
+        }else{
+            this.currentFolder=currentFolder;
+        }
+        currentPath = System.getProperty("user.dir");
+        folderToPopulate = currentPath + "\\" + this.currentFolder + "\\";
         System.out.println(folderToPopulate);
         File folder = new File(folderToPopulate);
         if (!folder.mkdir()) {
@@ -66,6 +75,7 @@ public class Bulk {
                     } else {
                         String key = d.get(0);
                         Style style = new Style();
+                        style.measuredDimension=this.measuredDimension;
                         for (int i = 1; i < d.size(); i++) {
                             String val = d.get(i);
                             if (val.length() > 0) {
@@ -168,11 +178,7 @@ public class Bulk {
                 store[x] = str;
             }
             Integer startVal = id.map.get(str);
-            if (startVal == null) {
-                id.map.put(str, startVal = 1);
-            } else {
-                id.map.put(str, ++startVal);
-            }
+            id.map.put(str, startVal = startVal == null ? 1 : startVal + 1);
             str = String.format(str, startVal);
 
             printData.string[x] = str;

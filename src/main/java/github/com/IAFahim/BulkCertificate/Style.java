@@ -14,14 +14,13 @@ public class Style {
     public int fontSize = 16;
     public Color fontColor = Color.BLACK;
     public double fontOpacity = 1;
-
-    public Dimension picture;
+    public DimensionDouble measuredDimension;
 
     public void set(String key, String val) {
         key = key.toLowerCase();
         switch (key) {
-            case "x" -> this.x = setPosition(val);
-            case "y" -> this.y = setPosition(val);
+            case "x" -> this.x = setPosition(val,measuredDimension.widthMultiple);
+            case "y" -> this.y = setPosition(val,measuredDimension.heightMultiple);
             case "ax" -> this.ax = Double.parseDouble(val);
             case "ay" -> this.ay = Double.parseDouble(val);
             case "font" -> this.font = val;
@@ -44,11 +43,8 @@ public class Style {
         return x + "," + y + "," + ax + "," + ay + "," + font + "," + fontStyle + "," + fontSize + "," + Integer.toHexString(fontColor.getRGB()) + "," + fontOpacity + "\n";
     }
 
-    private int setPosition(String val) {
-        double x = Double.parseDouble(val);
-        if (x < 1 && 0 < 1 - x) {
-            return (int) (picture.width * x);
-        }
+    private int setPosition(String val, double heightOrWidth) {
+        double x = Double.parseDouble(val)* heightOrWidth;
         return (int) x;
     }
 
