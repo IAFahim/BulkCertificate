@@ -9,49 +9,54 @@ import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.IOException;
 
-public class GenerateImage implements Runnable{
+public class GenerateImage implements Runnable {
     private BufferedImage bufferedImage;
     private Graphics2D canvas;
     private final PrintData printData;
     private final String folderToPopulate;
     private final String type;
 
-    public GenerateImage(BufferedImage bufferedImage, PrintData printData, String type, String folderToPopulate){
-        this.bufferedImage=bufferedImage;
-        this.printData =printData;
-        this.type=type;
-        this.folderToPopulate=folderToPopulate;
-        if(printData.fileName==null){
-            printData.fileName= printData.string[0];
+    public GenerateImage(BufferedImage bufferedImage, PrintData printData, String type, String folderToPopulate) {
+        this.bufferedImage = bufferedImage;
+        this.printData = printData;
+        this.type = type;
+        this.folderToPopulate = folderToPopulate;
+        if (printData.fileName == null) {
+            printData.fileName = printData.string[0];
         }
-        printData.fileName+='.'+type;
+        printData.fileName += '.' + type;
     }
 
-    private static void writeImage(BufferedImage bufferedImage, String path, String type){
+    private static void writeImage(BufferedImage bufferedImage, String path, String type) {
         try {
-            ImageIO.write(bufferedImage,type,new File(path));
+            ImageIO.write(bufferedImage, type, new File(path));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static BufferedImage createImage(){
-        BufferedImage bufferedImage=new BufferedImage(1000,1000, BufferedImage.TYPE_INT_ARGB);
+    public static void createImage(int width, int height, String pathString) {
+        BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < bufferedImage.getHeight(); y++) {
             for (int x = 0; x < bufferedImage.getWidth(); x++) {
-                bufferedImage.setRGB(x,y,0xff_ff_ff_ff);
+                bufferedImage.setRGB(x, y, 0xff_ff_ff_ff);
             }
         }
-        return bufferedImage;
+        int at = pathString.lastIndexOf('.');
+        writeImage(bufferedImage, pathString, pathString.substring(at + 1));
     }
 
-    private void addTextToImage(int i, PrintData print){
-        canvas.setFont(new Font(print.style[i].font,print.style[i].fontStyleNumber,print.style[i].fontSize));
+    private void addTextToImage(int i, PrintData print) {
+        canvas.setFont(new Font(print.style[i].font, print.style[i].fontStyleNumber, print.style[i].fontSize));
         canvas.setColor(print.style[i].fontColor);
-        TextLayout textLayout=new TextLayout(print.string[i],canvas.getFont(),canvas.getFontRenderContext());
-        Rectangle2D bounds= textLayout.getBounds();
+        TextLayout textLayout = new TextLayout(print.string[i], canvas.getFont(), canvas.getFontRenderContext());
+        Rectangle2D bounds = textLayout.getBounds();
         canvas.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-        canvas.drawString(print.string[i],(int) (print.style[i].x - (bounds.getBounds().getWidth()* print.style[i].ax)), (int) (print.style[i].y ));
+        if (print.style[i].stretchedFontFromIllustrator == 1) {
+            canvas.drawString(print.string[i], (int) (print.style[i].x - (bounds.getBounds().getWidth() * print.style[i].ax)), (int) (print.style[i].y + (print.style[i].fontSize * print.style[i].ay * .5)));
+        } else {
+            canvas.drawString(print.string[i], (int) (print.style[i].x - (bounds.getBounds().getWidth() * print.style[i].ax)), (int) (print.style[i].x + (bounds.getBounds().getHeight() * print.style[i].ay)));
+        }
         canvas.setColor(Color.BLUE);
     }
 
@@ -65,13 +70,13 @@ public class GenerateImage implements Runnable{
 
     @Override
     public void run() {
-        this.bufferedImage=copyImage(bufferedImage);
+        this.bufferedImage = copyImage(bufferedImage);
         canvas = (Graphics2D) bufferedImage.getGraphics();
         for (int i = 0; i < printData.string.length; i++) {
             addTextToImage(i, printData);
         }
         canvas.dispose();
 
-        writeImage(bufferedImage, folderToPopulate+ printData.fileName, type);
+        writeImage(bufferedImage, folderToPopulate + printData.fileName, type);
     }
 }

@@ -99,7 +99,7 @@ public class Bulk {
         return data;
     }
 
-    public void repairCSVForReadData(LinkedHashMap<String, Style> map, String dataCSVPath) {
+    public void repairMainCSVAndCreateImage(LinkedHashMap<String, Style> map, String dataCSVPath) {
         Iterable<CSVRecord> csv_data = cSVReadAll(dataCSVPath);
         int y = -1;
         ArrayList<StyleIndexAt> styles = null;
@@ -131,7 +131,6 @@ public class Bulk {
                 e.printStackTrace();
             }
         }
-
     }
 
     private void readHead(LinkedHashMap<String, Style> map, CSVRecord d, ArrayList<StyleIndexAt> styles, ArrayList<IDIndexAtMap> ids, String[] store, DataOutputStream dataOutputStream) {

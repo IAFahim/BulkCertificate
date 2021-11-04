@@ -14,6 +14,8 @@ public class Style {
     public int fontSize = 16;
     public Color fontColor = Color.BLACK;
     public double fontOpacity = 1;
+    public double stretchedFontFromIllustrator;
+
     public DimensionDouble measuredDimension;
 
     public void set(String key, String val) {
@@ -32,15 +34,16 @@ public class Style {
             case "font size" -> this.fontSize = setFontSize(val);
             case "font color" -> this.fontColor = setFontColor(val);
             case "font opacity" -> this.fontOpacity = setFontOpacity(val);
+            case "stretched font" -> this.stretchedFontFromIllustrator = (val.equals("1")?1:0);
         }
     }
 
     public static String getTitle() {
-        return "Data,x,y,ax,ay,font,font style,font size,font color,font opacity\n";
+        return "Data,x,y,ax,ay,font,font style,font size,font color,font opacity,stretched font\n";
     }
 
     public String toString() {
-        return x + "," + y + "," + ax + "," + ay + "," + font + "," + fontStyle + "," + fontSize + "," + Integer.toHexString(fontColor.getRGB()) + "," + fontOpacity + "\n";
+        return x + "," + y + "," + ax + "," + ay + "," + font + "," + fontStyle + "," + fontSize + "," + Integer.toHexString(fontColor.getRGB()) + "," + fontOpacity + "," + stretchedFontFromIllustrator + "\n";
     }
 
     private int setPosition(String val, double heightOrWidth) {
