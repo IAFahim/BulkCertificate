@@ -40,11 +40,12 @@ public class Bulk {
         if (currentFolder == null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE d MMM yyyy HH-mm-ss aaa");
             this.currentFolder = dateFormat.format(new Date());
+            currentPath = System.getProperty("user.dir");
+            folderToPopulate = currentPath + "\\" + this.currentFolder + "\\";
         }else{
-            this.currentFolder=currentFolder;
+            this.currentFolder=currentFolder+"\\";
+            folderToPopulate=currentFolder+"\\";
         }
-        currentPath = System.getProperty("user.dir");
-        folderToPopulate = currentPath + "\\" + this.currentFolder + "\\";
         System.out.println(folderToPopulate);
         File folder = new File(folderToPopulate);
         if (!folder.mkdir()) {
